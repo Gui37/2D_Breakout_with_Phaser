@@ -24,7 +24,11 @@
         var newBrick;
         var brickInfo;
         var scoreText;
+    
         var score = 0;
+        var lives = 3;
+        var livesText;
+        var lifeLostText;
 
         function preload() {
             game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -45,10 +49,7 @@
             ball.body.collideWorldBounds = true;
             ball.body.bounce.set(1);
             ball.checkWorldBounds = true;
-            ball.events.onOutOfBounds.add(function () {
-                alert('Game over Bro!');
-                location.reload();
-            }, this);
+            ball.events.onOutOfBounds.add(ballLeaveScreen, this);
 
             paddle = game.add.sprite(game.world.width * 0.5, game.world.height - 5, 'paddle');
             paddle.anchor.set(0.5, 1);
@@ -56,8 +57,17 @@
             paddle.body.immovable = true;
 
             initBricks();
+            textStyle = { font:'18px Arial', fill:'#0095DD' }
 
-            scoreText = game.add.text(5, 5, 'Pontos: 0', { font: '18px Arial', fill: '#0095DD' });
+            livesText = game.add.text(game.world.width - 5, 5, `Vidas: ${lives}`, textStyle);
+            livesText.anchor.set(1, 0);
+            
+            lifeLostText = game.add.text(
+                game.world.width * 0.5, game.world.height * 0.5,'Vida perdida, click to continue', textStyle);
+            lifeLostText.anchor.set(0.5);
+            lifeLostText.visible = false;
+
+            scoreText = game.add.text(5, 5, 'Pontos: 0', textStyle);
 
         }
         function update() {
@@ -107,6 +117,23 @@
             }
             if (count_alive == 0) {
                 alert('Parabéns, venceste o jogo com ' + score + ' Pontos');
+                location.reload();
+            }
+        }
+
+        function ballLeaveScreen(){
+            lives--;
+            if (lives) {
+                livesText.setText(`Vidas: ${score}`);
+                lifeLostText.visible = true;
+                ball.reset(game.world.width * 0.5, game.world.height - 25);
+                paddle.reset(game.world.width * 0.5, game.world.height - 5);
+                game.input.onDown.addOnce(() => {
+                    lifeLostText.visible = false;
+                    ball.body.velocity.set(150, -150);
+                }, this);
+            } else {
+                alert("Game over Bro!");
                 location.reload();
             }
         }
